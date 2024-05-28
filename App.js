@@ -1,139 +1,56 @@
-import React, {startTransition, useState} from 'react';
-import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import Task from './components/Task';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import 'react-native-gesture-handler';
 
+import React, {startTransition, useState} from 'react';
+import Home from './components/Home'
+import { createStackNavigator } from '@react-navigation/stack';
+import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
+import { Alert, Text } from 'react-native';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+
+const Stack = createStackNavigator();
 
 export default function App() {
-  const [task, setTask] = useState();
-  const [taskItems, setTaskItems] = useState([]);
-
-  React.useEffect(() => {
-    const asyncAction = async () => {
-      try {
-        const loadedData = await getData();
-        setTaskItems(loadedData);
-      } catch (e) {
-        console.log(e)
-      }
-    }
-    asyncAction();
-  }, []);
-
-
-  const handleAddTask = () => {
-    Keyboard.dismiss();
-    setTaskItems([...taskItems, task]);
-    setTask(null);
-    storeData([...taskItems, task]);
-  }
-
-  const completeTask = (index) => {
-    let itemsCopy = [...taskItems];
-    itemsCopy.splice(index, 1);
-    setTaskItems(itemsCopy);
-    storeData(itemsCopy);
-  }
-
-  const storeData = async (value) => {
-    try {
-      const jsonValue = JSON.stringify(value);
-      console.log(jsonValue);
-      await AsyncStorage.setItem('@storage', jsonValue);
-    } catch (err) {
-      console.log(err);
-    }
-  }
-
-  const getData = async () => {
-    try {
-      const jsonValue = await AsyncStorage.getItem('@storage');
-      return jsonValue != null ? JSON.parse(jsonValue) : null;
-    } catch (err) {
-      console.log(err);
-    }
-
-  }
-
+  const navigation = useNavigationContainerRef();
 
   return (
-    <View style={styles.container}>
-      <View style={styles.taskWrapper}>
-      <Text style={styles.sectionTitle}>Today's tasks</Text>
-      <View style={styles.items}>
-      {
-        taskItems.map((item, index)=> {
-          return (
-           <TouchableOpacity  key = {index} onPress={()=>completeTask(index)}>
-            <Task text={item}/>
-          </TouchableOpacity>
-          ) 
-        }
-        )
-      }
-      </View>
-      </View>
-    <KeyboardAvoidingView 
-    behavior={Platform.OS === "ios" ? "padding": "height"} 
-    style={styles.writeTaskWrapper}
+    <NavigationContainer ref={navigation}>
+    <Stack.Navigator
+      initialRouteName="Home"
+      screenOptions={{
+        headerMode: 'screen',
+        headerStyle: { backgroundColor: 'transparent' },
+      }}
     >
-      <TextInput style={styles.input} placeholder={'Write a task'} value = {task} onChangeText={text => setTask(text)}/>
-      <TouchableOpacity onPress={() => handleAddTask()} >
-        <View style={styles.addWrapper}>
-        <Text style={styles.addText}>+</Text>
-        </View>
-      </TouchableOpacity>
-    </KeyboardAvoidingView>
-    </View>
+      <Stack.Screen
+        name="Home"
+        component={Home}
+        options={()=>({
+          title: '',
+          headerRight: ()=> (
+            <FontAwesome.Button name="lock"
+            onPress={() => Alert.alert(
+              'Czy chcesz włączyć szyfrowanie?',
+              'Gdy szyfrowanie zostanie włączone każdorazowo wymagane będzie logowanie PIN-em, lub za pomocą Biometrii',
+              [
+                {text: 'Anuluj', onPress: () => console.log('Cancel Pressed!')},
+                {text: 'Włącz', onPress: ()=> navigation.navigate("Test")},
+              ],
+              { cancelable: false }
+            )}
+            title="Info"
+            color = '#55BCF6'
+            backgroundColor='transparent'
+          />
+          ),
+        })}
+      />
+      <Stack.Screen
+      name="Test"
+      component={Home}
+      />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
+  
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#E8EAED',
-  },
-  taskWrapper: {
-    paddingTop: 80,
-    paddingHorizontal: 20,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight:'bold',
-  },
-  items: {
-    marginTop: 20
-  },
-  writeTaskWrapper: {
-    position: 'absolute',
-    bottom: 60,
-    width:'100%',
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center'
-  },
-  input: {
-    paddingVertical: 15,
-    width: 250,
-    paddingHorizontal: 15,
-    backgroundColor: '#FFF',
-    borderRadius: 60,
-    borderColor: '#C0C0C0',
-    borderWidth: 1
-
-  },
-  addWrapper: {
-    width: 60,
-    height: 60,
-    backgroundColor: '#FFF',
-    borderRadius: 60,
-    borderColor: '#C0C0C0',
-    borderWidth: 1,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  addText: {
-    fontSize: 24,
-    tintColor: '#C0C0C0'
-  },
-});
