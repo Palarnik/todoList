@@ -1,5 +1,5 @@
 import React, {startTransition, useState} from 'react';
-import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View, NativeModules } from 'react-native';
 import Task from './Task';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export default function Home() {
   const [task, setTask] = useState();
   const [taskItems, setTaskItems] = useState([]);
+  const {NativeIntentModule} = NativeModules;
 
   React.useEffect(() => {
     const asyncAction = async () => {
@@ -33,6 +34,7 @@ export default function Home() {
     itemsCopy.splice(index, 1);
     setTaskItems(itemsCopy);
     storeData(itemsCopy);
+    NativeIntentModule.shareFinishedTask('Testoweo');
   }
 
   const storeData = async (value) => {
