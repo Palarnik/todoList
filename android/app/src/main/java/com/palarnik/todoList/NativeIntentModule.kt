@@ -18,6 +18,7 @@ class NativeIntentModule(reactContext: ReactApplicationContext) : ReactContextBa
         sendIntent.setType("text/plain")
 
         val shareIntent = Intent.createChooser(sendIntent, null)
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(reactApplicationContext, shareIntent, null)
     }
 
